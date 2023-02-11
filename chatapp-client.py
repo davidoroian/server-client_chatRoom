@@ -17,25 +17,25 @@ host = socket.gethostname()  # ipv4
 class Client:
 
     def __init__(self, host, port):
-        self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM) # creating socket that can receive ipv6 addresses, this works with ipv4 as well
         self.sock.connect((host, port))
-        self.sock.setblocking(False)
+        self.sock.setblocking(False) # for getting rid of 'hang'
 
         msg = tkinter.Tk()
         msg.withdraw()
 
         self.my_username = simpledialog.askstring("Username", "Please choose an username", parent=msg)
 
-        self.gui_done = False
-        self.running = True
+        self.gui_done = False # gui is not fully created
+        self.running = True # client is running 
 
-        gui_thread = threading.Thread(target=self.gui_loop)
-        receive_thread = threading.Thread(target=self.receive)
+        gui_thread = threading.Thread(target=self.gui_loop) # for creating gui
+        receive_thread = threading.Thread(target=self.receive) # for receiving and sending data
 
         gui_thread.start()
         receive_thread.start()
 
-    def gui_loop(self):
+    def gui_loop(self): # creating gui
         self.win = tkinter.Tk()
         self.win.configure(bg="lightgray")
 
@@ -45,7 +45,7 @@ class Client:
 
         self.text_area = tkinter.scrolledtext.ScrolledText(self.win)
         self.text_area.pack(padx=20, pady=5)
-        self.text_area.config(state='disabled')
+        self.text_area.config(state='disabled') # client is not able to modify the message area
 
         self.message_label = tkinter.Label(
             self.win, text="Chat:", bg="lightgray")
@@ -60,59 +60,63 @@ class Client:
         self.send_button.config(font=("Arial", 12))
         self.send_button.pack(padx=20, pady=5)
 
-        self.gui_done = True
+        self.gui_done = True # gui has been created
 
         self.win.protocol("VM_DELETE_WINDOW", self.stop)
 
         self.win.mainloop()
 
-    def write(self):
+    def write(self): # writing messages
         message = f"{self.input_area.get('1.0', 'end')}"
 
         if message:
+            # getting and encoding time info
             written_time = time.localtime()
             written_time = time.strftime("%H:%M", written_time).encode('utf-8')
             written_time_header = f"{len(written_time):<{HEADERLENGTH}}".encode('utf-8')
 
+            # encoding message
             message = message.encode('utf-8')
-            message_header = f"{len(message):<{HEADERLENGTH}}".encode('utf-8')
-            self.sock.send(written_time_header + written_time + message_header + message)
-            self.input_area.delete('1.0', 'end')
+            message_header = f"{len(message):<{HEADERLENGTH}}".encode('utf-8') 
+            self.sock.send(written_time_header + written_time + message_header + message) # seding data
+            self.input_area.delete('1.0', 'end') # clearing out input area
 
-    def receive(self):
-        while self.running:
+    def receive(self): # receiving messages
+        while self.running: # always listen for messages
             try:
                 username_header = self.sock.recv(HEADERLENGTH)
                 if not len(username_header):
                     print("connection closed by the server")
                     sys.exit()
 
-                username_length = int(username_header.decode('utf-8').strip())
+                username_length = int(username_header.decode('utf-8').strip()) # getting first set of data which is user data
                 username = self.sock.recv(username_length).decode('utf-8')
 
-                if username == 'please provide a USERNAME':
+                if username == 'please provide a USERNAME': # when you first start the client
                     written_time = time.localtime()
                     written_time = time.strftime("%H:%M", written_time).encode('utf-8')
                     written_time_header = f"{len(written_time):<{HEADERLENGTH}}".encode('utf-8')
 
                     username = self.my_username.encode('utf-8')
                     username_header = f"{len(username):<{HEADERLENGTH}}".encode('utf-8')
-                    self.sock.send(written_time_header + written_time + username_header + username)
+                    self.sock.send(written_time_header + written_time + username_header + username) # sending user data back to server
                 else:
-                    if self.gui_done:
-                        self.text_area.config(state='normal')
+                    if self.gui_done: # only if gui has been generated
+                        self.text_area.config(state='normal') # enable message area for modification
 
+                        # getting second set of data, for the time
                         written_time_header = self.sock.recv(HEADERLENGTH)
                         written_time_length = int(written_time_header.decode('utf-8').strip())
                         written_time = self.sock.recv(written_time_length).decode('utf-8')
 
+                        # getting third set of data, the actual message
                         message_header = self.sock.recv(HEADERLENGTH)
                         message_length = int(message_header.decode('utf-8').strip())
                         message = self.sock.recv(message_length).decode('utf-8')
 
-                        self.text_area.insert('end', f"{username} [{written_time}] > {message}")
-                        self.text_area.yview('end')
-                        self.text_area.config(state='disabled')
+                        self.text_area.insert('end', f"{username} [{written_time}] > {message}") # writing message
+                        self.text_area.yview('end') # message area scrolls down on its own
+                        self.text_area.config(state='disabled') # locking the message area back
 
             except IOError as e:
                 if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
@@ -130,4 +134,4 @@ class Client:
         self.sock.close()
         sys.exit(0)
 
-client = Client(host, port)
+client = Client(host, port) # generating client
