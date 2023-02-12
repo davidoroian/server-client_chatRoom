@@ -97,6 +97,7 @@ class Server :
         login_message_header = f"{len(login_message):<{self.HEADERLENGTH}}".encode('utf-8')
 
         self.shareToOnlineUsers(login_message_header, login_message, user)
+        time.sleep(1)
         self.sendBufferedMessages(user)
 
 
@@ -144,28 +145,6 @@ class Server :
         # getting the username 
         username = self.receive_message(client_socket) 
         username = username['data'].decode('utf-8')
-
-        # # sending request for GUI completion
-        # gui_message = 'waiting for GUI' 
-        # gui_message = gui_message.encode('utf-8')
-        # gui_message_header = f"{len(gui_message):<{self.HEADERLENGTH}}".encode('utf-8')
-        # client_socket.send(gui_message_header + gui_message) 
-    
-        # # getting the gui completion message 
-        # done = self.receive_message(client_socket) 
-        # done = done['data'].decode('utf-8')
-
-        # while done != 'GUI DONE': # looping until GUI is done
-        #     print(done)
-        #     # sending request for GUI completion
-        #     gui_message = 'waiting for GUI' 
-        #     gui_message = gui_message.encode('utf-8')
-        #     gui_message_header = f"{len(gui_message):<{self.HEADERLENGTH}}".encode('utf-8')
-        #     client_socket.send(gui_message_header + gui_message) 
-        
-        #     # getting the gui completion message 
-        #     done = self.receive_message(client_socket) 
-        #     done = done['data'].decode('utf-8')
 
         if username in self.users: # checking if server already has the username
             self.login_client(client_socket, username)

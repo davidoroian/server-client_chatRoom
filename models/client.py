@@ -94,24 +94,6 @@ class Client:
                     username = self.my_username.encode('utf-8')
                     username_header = f"{len(username):<{self.HEADERLENGTH}}".encode('utf-8')
                     self.sock.send(written_time_header + written_time + username_header + username) # sending user data back to server
-                # elif username == 'waiting for GUI' :
-                #     while self.gui_done==False: # waiting for gui to generate
-                #         written_time = time.localtime()
-                #         written_time = time.strftime("%H:%M", written_time).encode('utf-8')
-                #         written_time_header = f"{len(written_time):<{self.HEADERLENGTH}}".encode('utf-8')
-
-                #         done = 'GUI NOT DONE'.encode('utf-8')
-                #         done_header = f"{len(done):<{self.HEADERLENGTH}}".encode('utf-8')
-                #         self.sock.send(written_time_header + written_time + done_header + done) 
-
-                #     # GUI is done
-                #     written_time = time.localtime()
-                #     written_time = time.strftime("%H:%M", written_time).encode('utf-8')
-                #     written_time_header = f"{len(written_time):<{self.HEADERLENGTH}}".encode('utf-8')
-
-                #     done = 'GUI DONE'.encode('utf-8')
-                #     done_header = f"{len(done):<{self.HEADERLENGTH}}".encode('utf-8')
-                #     self.sock.send(written_time_header + written_time + done_header + done) 
                 else:
                     self.text_area.config(state='normal') # enable message area for modification
 

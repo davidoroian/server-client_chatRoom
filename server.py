@@ -12,7 +12,6 @@ server = Server(host, port)
 
 while True:
     read_sockets, _, exception_sockets = select.select(server.sockets_list, [], server.sockets_list)
-
     for notified_socket in read_sockets:
         if notified_socket == server.socket: # client_socket is new, user is new or came back to the chatroom
             server.firstConnection()  
