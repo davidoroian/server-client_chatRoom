@@ -7,16 +7,10 @@ import errno
 import sys
 import time
 
-HEADERLENGTH = 10
-
-port = 12234
-# host = socket.getaddrinfo(socket.gethostname(), port, socket.AF_INET6)[0][4][0] #ipv6
-host = socket.gethostname()  # ipv4
-
-
 class Client:
 
     def __init__(self, host, port):
+        self.HEADERLENGTH = 10
         self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM) # creating socket that can receive ipv6 addresses, this works with ipv4 as well
         self.sock.connect((host, port))
         self.sock.setblocking(False) # for getting rid of 'hang'
@@ -73,18 +67,18 @@ class Client:
             # getting and encoding time info
             written_time = time.localtime()
             written_time = time.strftime("%H:%M", written_time).encode('utf-8')
-            written_time_header = f"{len(written_time):<{HEADERLENGTH}}".encode('utf-8')
+            written_time_header = f"{len(written_time):<{self.HEADERLENGTH}}".encode('utf-8')
 
             # encoding message
             message = message.encode('utf-8')
-            message_header = f"{len(message):<{HEADERLENGTH}}".encode('utf-8') 
+            message_header = f"{len(message):<{self.HEADERLENGTH}}".encode('utf-8') 
             self.sock.send(written_time_header + written_time + message_header + message) # seding data
             self.input_area.delete('1.0', 'end') # clearing out input area
 
     def receive(self): # receiving messages
         while self.running: # always listen for messages
             try:
-                username_header = self.sock.recv(HEADERLENGTH)
+                username_header = self.sock.recv(self.HEADERLENGTH)
                 if not len(username_header):
                     print("connection closed by the server")
                     sys.exit()
@@ -95,28 +89,45 @@ class Client:
                 if username == 'please provide a USERNAME': # when you first start the client
                     written_time = time.localtime()
                     written_time = time.strftime("%H:%M", written_time).encode('utf-8')
-                    written_time_header = f"{len(written_time):<{HEADERLENGTH}}".encode('utf-8')
+                    written_time_header = f"{len(written_time):<{self.HEADERLENGTH}}".encode('utf-8')
 
                     username = self.my_username.encode('utf-8')
-                    username_header = f"{len(username):<{HEADERLENGTH}}".encode('utf-8')
+                    username_header = f"{len(username):<{self.HEADERLENGTH}}".encode('utf-8')
                     self.sock.send(written_time_header + written_time + username_header + username) # sending user data back to server
+                # elif username == 'waiting for GUI' :
+                #     while self.gui_done==False: # waiting for gui to generate
+                #         written_time = time.localtime()
+                #         written_time = time.strftime("%H:%M", written_time).encode('utf-8')
+                #         written_time_header = f"{len(written_time):<{self.HEADERLENGTH}}".encode('utf-8')
+
+                #         done = 'GUI NOT DONE'.encode('utf-8')
+                #         done_header = f"{len(done):<{self.HEADERLENGTH}}".encode('utf-8')
+                #         self.sock.send(written_time_header + written_time + done_header + done) 
+
+                #     # GUI is done
+                #     written_time = time.localtime()
+                #     written_time = time.strftime("%H:%M", written_time).encode('utf-8')
+                #     written_time_header = f"{len(written_time):<{self.HEADERLENGTH}}".encode('utf-8')
+
+                #     done = 'GUI DONE'.encode('utf-8')
+                #     done_header = f"{len(done):<{self.HEADERLENGTH}}".encode('utf-8')
+                #     self.sock.send(written_time_header + written_time + done_header + done) 
                 else:
-                    if self.gui_done: # only if gui has been generated
-                        self.text_area.config(state='normal') # enable message area for modification
+                    self.text_area.config(state='normal') # enable message area for modification
 
-                        # getting second set of data, for the time
-                        written_time_header = self.sock.recv(HEADERLENGTH)
-                        written_time_length = int(written_time_header.decode('utf-8').strip())
-                        written_time = self.sock.recv(written_time_length).decode('utf-8')
+                    # getting second set of data, for the time
+                    written_time_header = self.sock.recv(self.HEADERLENGTH)
+                    written_time_length = int(written_time_header.decode('utf-8').strip())
+                    written_time = self.sock.recv(written_time_length).decode('utf-8')
 
-                        # getting third set of data, the actual message
-                        message_header = self.sock.recv(HEADERLENGTH)
-                        message_length = int(message_header.decode('utf-8').strip())
-                        message = self.sock.recv(message_length).decode('utf-8')
+                    # getting third set of data, the actual message
+                    message_header = self.sock.recv(self.HEADERLENGTH)
+                    message_length = int(message_header.decode('utf-8').strip())
+                    message = self.sock.recv(message_length).decode('utf-8')
 
-                        self.text_area.insert('end', f"{username} [{written_time}] > {message}") # writing message
-                        self.text_area.yview('end') # message area scrolls down on its own
-                        self.text_area.config(state='disabled') # locking the message area back
+                    self.text_area.insert('end', f"{username} [{written_time}] > {message}") # writing message
+                    self.text_area.yview('end') # message area scrolls down on its own
+                    self.text_area.config(state='disabled') # locking the message area back
 
             except IOError as e:
                 if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
@@ -133,5 +144,3 @@ class Client:
         self.win.destroy()
         self.sock.close()
         sys.exit(0)
-
-client = Client(host, port) # generating client
