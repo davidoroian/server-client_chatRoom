@@ -86,7 +86,6 @@ class Client:
 
                 username_length = int(username_header.decode('utf-8').strip()) # getting first set of data which is user data
                 username = self.sock.recv(username_length).decode('utf-8')
-                print(f'inside client, message: {username}')
 
                 if username == 'please provide a USERNAME': # when you first start the client
                     written_time = time.localtime()
@@ -107,7 +106,6 @@ class Client:
                     gui_message = 'GUI DONE'.encode('utf-8')
                     gui_message_header = f"{len(gui_message):<{self.HEADERLENGTH}}".encode('utf-8')
                     self.sock.send(written_time_header + written_time + gui_message_header + gui_message) # sending gui info back to server
-                    print('sent gui notify')
                 elif username == 'YOU ARE READY' and not self.ready:
                     self.ready = True
                 else:

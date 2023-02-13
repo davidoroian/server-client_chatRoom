@@ -92,9 +92,7 @@ class Server :
         gui_message_header = f"{len(gui_message):<{self.HEADERLENGTH}}".encode('utf-8')
 
         self.users[user]['sock'].send(gui_message_header + gui_message)
-        print(f'{user} is ready to receive messages')
         self.sendBufferedMessages(user)
-        print(f'{user} is received all buffered messages')
 
 
     def initiate_login_client(self, client_socket, user):
