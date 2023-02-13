@@ -22,6 +22,7 @@ class Client:
 
         self.gui_done = False # gui is not fully created
         self.running = True # client is running 
+        self.ready = False # server does not know I am ready
 
         gui_thread = threading.Thread(target=self.gui_loop) # for creating gui
         receive_thread = threading.Thread(target=self.receive) # for receiving and sending data
@@ -85,6 +86,7 @@ class Client:
 
                 username_length = int(username_header.decode('utf-8').strip()) # getting first set of data which is user data
                 username = self.sock.recv(username_length).decode('utf-8')
+                print(f'inside client, message: {username}')
 
                 if username == 'please provide a USERNAME': # when you first start the client
                     written_time = time.localtime()
@@ -94,6 +96,20 @@ class Client:
                     username = self.my_username.encode('utf-8')
                     username_header = f"{len(username):<{self.HEADERLENGTH}}".encode('utf-8')
                     self.sock.send(written_time_header + written_time + username_header + username) # sending user data back to server
+                elif username == 'WAITING FOR GUI' and not self.ready: # server is waiting for the client to finish GUI
+                    while not self.gui_done: # waiting for GUI to finish
+                        time.sleep(0.100)
+                    
+                    written_time = time.localtime()
+                    written_time = time.strftime("%H:%M", written_time).encode('utf-8')
+                    written_time_header = f"{len(written_time):<{self.HEADERLENGTH}}".encode('utf-8')
+
+                    gui_message = 'GUI DONE'.encode('utf-8')
+                    gui_message_header = f"{len(gui_message):<{self.HEADERLENGTH}}".encode('utf-8')
+                    self.sock.send(written_time_header + written_time + gui_message_header + gui_message) # sending gui info back to server
+                    print('sent gui notify')
+                elif username == 'YOU ARE READY' and not self.ready:
+                    self.ready = True
                 else:
                     self.text_area.config(state='normal') # enable message area for modification
 

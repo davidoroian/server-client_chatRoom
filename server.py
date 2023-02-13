@@ -17,8 +17,17 @@ while True:
             server.firstConnection()  
         else: # listening for and receiving messages
             username = server.getUsernameOfSocket(notified_socket)
-            if server.isCurrentUserOnline(username):
-                server.listenForMessage(notified_socket)
+            if server.isCurrentUserOnline(username): # client is online
+                message = server.listenForMessage(notified_socket)
+                if not message: # if client logged out we go to next socket
+                    continue
+                server.sendMessageToAllUsers(notified_socket, message)
+            elif server.isCurrentUserWaitingForGui(username): # client is waiting for GUI
+                message = server.listenForMessage(notified_socket)
+                if not message: # if GUI is not done go to next socket
+                    continue
+                if message['data'].decode('utf-8') == 'GUI DONE':
+                    server.login_client(username)
             else:
                 continue
 

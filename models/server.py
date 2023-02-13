@@ -85,20 +85,36 @@ class Server :
         self.shareToOnlineUsers(logout_message_header, logout_message, user)
 
 
-    def login_client(self, client_socket, user):
+    def login_client(self, user):
+        self.users[user]['online'] = 1 # marking the user as online
+        gui_message = 'YOU ARE READY'
+        gui_message = gui_message.encode('utf-8')
+        gui_message_header = f"{len(gui_message):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        self.users[user]['sock'].send(gui_message_header + gui_message)
+        print(f'{user} is ready to receive messages')
+        self.sendBufferedMessages(user)
+        print(f'{user} is received all buffered messages')
+
+
+    def initiate_login_client(self, client_socket, user):
         print(f"Re-eastablished connection from {user}")
 
         self.sockets_list.append(client_socket) # appending the new socket to the list for select
-        self.users[user]['online'] = 1 # marking the user as online
+        self.users[user]['online'] = 2 # marking the user as online but gui is not ready yet
         self.users[user]['sock'] = client_socket # updating socket
+
+        gui_message = 'WAITING FOR GUI'
+        gui_message = gui_message.encode('utf-8')
+        gui_message_header = f"{len(gui_message):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        self.users[user]['sock'].send(gui_message_header + gui_message)
 
         login_message = 'logged in\n'
         login_message = login_message.encode('utf-8')
         login_message_header = f"{len(login_message):<{self.HEADERLENGTH}}".encode('utf-8')
 
         self.shareToOnlineUsers(login_message_header, login_message, user)
-        time.sleep(1)
-        self.sendBufferedMessages(user)
 
 
     def register_client(self, client_socket, user, client_address):
@@ -147,13 +163,17 @@ class Server :
         username = username['data'].decode('utf-8')
 
         if username in self.users: # checking if server already has the username
-            self.login_client(client_socket, username)
+            self.initiate_login_client(client_socket, username)
         else:
             self.register_client(client_socket, username, client_address)
 
 
     def isCurrentUserOnline(self, username):
         return username and self.users[username]['online'] == 1
+
+
+    def isCurrentUserWaitingForGui(self, username):
+        return username and self.users[username]['online'] == 2
 
 
     def getUsernameOfSocket(self, notified_socket):
@@ -176,6 +196,13 @@ class Server :
 
         print(f"Received message from {username} at [{message['time'].decode('utf-8')}]: {message['data'].decode('utf-8')}")
 
+        return message
+
+
+    def sendMessageToAllUsers(self, notified_socket, message):
+
+        username = self.getUsernameOfSocket(notified_socket)
+
         for user in self.users: 
             username_encoded = username.encode('utf-8')
             username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
@@ -194,6 +221,3 @@ class Server :
                 self.users[username]['sock'].send(receiver_header + receiver + now['time_header'] + now['time'] + received_message_header + received_message)
             elif user != username and self.users[user]['online'] == 0: # storing the message in the buffers of all of the offline users
                 self.users[user]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':message['time_header'], 't':message['time'], 'msgheader': message['header'], 'msg':message['data']})
-
-
-
