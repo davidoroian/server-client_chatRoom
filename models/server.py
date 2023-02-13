@@ -5,6 +5,7 @@ class Server :
     
     def __init__(self, host, port):
         self.users = {} # user data
+        self.groups={} #group data
         self.HEADERLENGTH = 10
         
         if socket.has_dualstack_ipv6():
@@ -219,3 +220,50 @@ class Server :
                 self.users[username]['sock'].send(receiver_header + receiver + now['time_header'] + now['time'] + received_message_header + received_message)
             elif user != username and self.users[user]['online'] == 0: # storing the message in the buffers of all of the offline users
                 self.users[user]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':message['time_header'], 't':message['time'], 'msgheader': message['header'], 'msg':message['data']})
+
+
+    def sendError(self, error, user):
+        username_encoded = 'System'.encode('utf-8')
+        username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        now = self.getTime() # for sending receive notification
+        error = error.encode('utf-8')
+        error_header = f"{len(error):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + error_header + error)
+
+
+    def dm (self, sender, message, receiver):
+        username_encoded = sender.encode('utf-8')
+        username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        self.users[receiver]['sock'].send(username_header + username_encoded + message['time_header'] + message['time'] + message['header'] + message['data'])
+
+    def sendHelp(self, user):
+        username_encoded = 'System'.encode('utf-8')
+        username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        now = self.getTime() # for sending receive notification
+        help = "These are the available commands:\n" \
+                "\t@[username/group] [message] - send a message to a user or a group\n" \
+                "\t/help - get help\n" \
+                "\t/users - lists existing usernames with status\n" \
+                "\t/groups - lists your available groups\n" \
+                "\t/create group [groupname] - creates an empty group with you as admin\n" \
+                "\t/make admin [groupname] [username] - adds username to admin group for specific group\n"
+
+        help = help.encode('utf-8')
+        help_header = f"{len(help):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + help_header + help)
+
+    def sendUsers(self, user):
+        username_encoded = 'System'.encode('utf-8')
+        username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        now = self.getTime() # for sending receive notification
+        help = 'Available users:\n' + str(list(self.users.keys()) + '\n')
+        help = help.encode('utf-8')
+        help_header = f"{len(help):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + help_header + help)
