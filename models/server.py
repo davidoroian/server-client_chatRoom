@@ -210,6 +210,9 @@ class Server :
             received_message = f"received the message you sent at {now['time'].decode('utf-8')}\n".encode('utf-8')
             received_message_header = f"{len(received_message):<{self.HEADERLENGTH}}".encode('utf-8')
 
+            offline_message = f"is offline, the message was sent \n".encode('utf-8')
+            offline_message_header = f"{len(offline_message):<{self.HEADERLENGTH}}".encode('utf-8')
+
             receiver = user.encode('utf-8')
             receiver_header = f"{len(receiver):<{self.HEADERLENGTH}}".encode('utf-8')
 
@@ -219,7 +222,10 @@ class Server :
                 # receive motification for the sender
                 self.users[username]['sock'].send(receiver_header + receiver + now['time_header'] + now['time'] + received_message_header + received_message)
             elif user != username and self.users[user]['online'] == 0: # storing the message in the buffers of all of the offline users
+                # message sent to desired receiver
                 self.users[user]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':message['time_header'], 't':message['time'], 'msgheader': message['header'], 'msg':message['data']})
+                # receive motification for the sender
+                self.users[username]['sock'].send(receiver_header + receiver + now['time_header'] + now['time'] + offline_message_header + offline_message)
 
 
     def sendError(self, error, user):
@@ -234,10 +240,29 @@ class Server :
 
 
     def dm (self, sender, message, receiver):
+        message_encoded = message.encode('utf-8')
+        message_encoded_header = f"{len(message_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
         username_encoded = sender.encode('utf-8')
         username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
 
-        self.users[receiver]['sock'].send(username_header + username_encoded + message['time_header'] + message['time'] + message['header'] + message['data'])
+        now = self.getTime() # for sending receive notification
+        received_message = f"received the message you sent at {now['time'].decode('utf-8')}\n".encode('utf-8')
+        received_message_header = f"{len(received_message):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        offline_message = f"is offline, the message was sent \n".encode('utf-8')
+        offline_message_header = f"{len(offline_message):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        receiver_encoded = receiver.encode('utf-8')
+        receiver_header = f"{len(receiver_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        if self.users[receiver]['online'] == 1:
+            self.users[receiver]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + message_encoded_header + message_encoded)
+            self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + received_message_header + received_message)
+        else:
+            self.users[receiver]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':now['time_header'], 't':now['time'], 'msgheader': message_encoded_header, 'msg':message_encoded})
+            self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + offline_message_header + offline_message)
+
 
     def sendHelp(self, user):
         username_encoded = 'System'.encode('utf-8')
@@ -262,7 +287,7 @@ class Server :
         username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
 
         now = self.getTime() # for sending receive notification
-        help = 'Available users:\n' + str(list(self.users.keys()) + '\n')
+        help = 'Available users:\n' + str(list(self.users.keys())) + '\n'
         help = help.encode('utf-8')
         help_header = f"{len(help):<{self.HEADERLENGTH}}".encode('utf-8')
 

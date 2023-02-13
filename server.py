@@ -19,7 +19,7 @@ pat_help = re.compile(string_help)
 string_users = r'/users'
 pat_users = re.compile(string_users)
 
-error = 'Incorrect syntax, use /help'
+error = 'Incorrect syntax, use /help\n'
 
 while True:
     read_sockets, _, exception_sockets = select.select(server.sockets_list, [], server.sockets_list)
@@ -36,7 +36,7 @@ while True:
                 if message_decoded.startswith('@'):
                     if pat_dm.match(message_decoded): # sending a dm
                         m = pat_dm.match(message_decoded)
-                        server.dm(username, m.group(2), m.group(1))
+                        server.dm(username, m.group(2) + '\n', m.group(1))
                     else:
                         server.sendError(error, username)
                 elif message_decoded.startswith('/'):
