@@ -19,6 +19,9 @@ pat_help = re.compile(string_help)
 string_users = r'/users'
 pat_users = re.compile(string_users)
 
+string_group = r'/create group (\w+)'
+pat_group = re.compile(string_users)
+
 error = 'Incorrect syntax, use /help\n'
 
 while True:

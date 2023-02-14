@@ -5,7 +5,7 @@ class Server :
     
     def __init__(self, host, port):
         self.users = {} # user data
-        self.groups={} #group data
+        self.groups={} # group data
         self.HEADERLENGTH = 10
         
         if socket.has_dualstack_ipv6():
@@ -240,6 +240,11 @@ class Server :
 
 
     def dm (self, sender, message, receiver):
+    
+        if receiver not in self.users.keys():
+            self.sendError("User/group does not exist", sender)
+            return 0
+
         message_encoded = message.encode('utf-8')
         message_encoded_header = f"{len(message_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
 
@@ -275,6 +280,7 @@ class Server :
                 "\t/users - lists existing usernames with status\n" \
                 "\t/groups - lists your available groups\n" \
                 "\t/create group [groupname] - creates an empty group with you as admin\n" \
+                "\t/add [groupname] [username]- adds a user to a group, if you are an admin there\n" \
                 "\t/make admin [groupname] [username] - adds username to admin group for specific group\n"
 
         help = help.encode('utf-8')
@@ -292,3 +298,7 @@ class Server :
         help_header = f"{len(help):<{self.HEADERLENGTH}}".encode('utf-8')
 
         self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + help_header + help)
+    
+
+    def createGroup (self, name):
+        pass
