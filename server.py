@@ -25,6 +25,9 @@ pat_group_create = re.compile(string_group_create)
 string_group = r'/group\s(\w+)'
 pat_group = re.compile(string_group)
 
+string_groups = r'/groups'
+pat_groups = re.compile(string_groups)
+
 error = 'Incorrect syntax, use /help\n'
 
 help = "These are the available commands:\n" \
@@ -67,6 +70,8 @@ while True:
                     elif pat_group.match(message_decoded): # sending group info
                         m = pat_group.match(message_decoded)
                         server.sendGroupInfo(m.group(1), username)
+                    elif pat_groups.match(message_decoded): # sending group info
+                        server.sendGroupsInfo(username)
                     else:
                         server.sendSystemMessage(error, username)
                 else:

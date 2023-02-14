@@ -288,6 +288,18 @@ class Server :
         create_message = f'Group {name} created\n'
         self.sendSystemMessage(create_message, user)
 
+
+    def sendGroupsInfo (self, user):
+        avl_groups = 'The groups you are in: \n'
+        for group in self.groups.keys():
+            if user in self.groups[group].keys():
+                avl_groups += f'name: {group}\n'
+        
+        if avl_groups != 'The groups you are in: \n':
+            self.sendSystemMessage(avl_groups, user)
+        else:
+            self.sendSystemMessage('You are in no groups\n', user)
+
     
     def sendGroupInfo (self, name, user):
         groupInfo = f'The members of group {name}: \n'
