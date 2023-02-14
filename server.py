@@ -3,6 +3,7 @@ import select
 import re
 from models.server import Server
 from assets.patterns import *
+from assets.strings import *
 
 HEADERLENGTH = 10
 
@@ -10,18 +11,6 @@ port = 12234
 host = socket.getaddrinfo(socket.gethostname(), port, socket.AF_INET6)[0][4][0]  # getting ipv6 address
 
 server = Server(host, port)
-
-error = 'Incorrect syntax, use /help\n'
-
-help = "These are the available commands:\n" \
-        "\t@[username/group] [message] - send a message to a user or a group\n" \
-        "\t/help - get help\n" \
-        "\t/users - lists existing usernames with status\n" \
-        "\t/groups - lists your available groups\n" \
-        "\t/group [groupname]- lists the users and admins in that specific group\n" \
-        "\t/create group [groupname] - creates an empty group with you as admin\n" \
-        "\t/add [groupname] [username]- adds a user to a group, if you are an admin there\n" \
-        "\t/make admin [groupname] [username] - adds username to admin group for specific group\n"
 
 while True:
     read_sockets, _, exception_sockets = select.select(server.sockets_list, [], server.sockets_list)
