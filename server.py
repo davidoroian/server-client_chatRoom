@@ -19,10 +19,23 @@ pat_help = re.compile(string_help)
 string_users = r'/users'
 pat_users = re.compile(string_users)
 
-string_group = r'/create group (\w+)'
-pat_group = re.compile(string_users)
+string_group_create = r'/create\sgroup\s(\w+)'
+pat_group_create = re.compile(string_group_create)
+
+string_group = r'/group\s(\w+)'
+pat_group = re.compile(string_group)
 
 error = 'Incorrect syntax, use /help\n'
+
+help = "These are the available commands:\n" \
+        "\t@[username/group] [message] - send a message to a user or a group\n" \
+        "\t/help - get help\n" \
+        "\t/users - lists existing usernames with status\n" \
+        "\t/groups - lists your available groups\n" \
+        "\t/group [groupname]- lists the users and admins in that specific group\n" \
+        "\t/create group [groupname] - creates an empty group with you as admin\n" \
+        "\t/add [groupname] [username]- adds a user to a group, if you are an admin there\n" \
+        "\t/make admin [groupname] [username] - adds username to admin group for specific group\n"
 
 while True:
     read_sockets, _, exception_sockets = select.select(server.sockets_list, [], server.sockets_list)
@@ -41,14 +54,21 @@ while True:
                         m = pat_dm.match(message_decoded)
                         server.dm(username, m.group(2) + '\n', m.group(1))
                     else:
-                        server.sendError(error, username)
+                        server.sendSystemMessage(error, username)
                 elif message_decoded.startswith('/'):
+                    print('in /')
                     if pat_help.match(message_decoded): # sending help syntax
-                        server.sendHelp(username)
+                        server.sendSystemMessage(help, username)
                     elif pat_users.match(message_decoded): # sending available users
                         server.sendUsers(username)
+                    elif pat_group_create.match(message_decoded): # creating a group
+                        m = pat_group_create.match(message_decoded)
+                        server.createGroup(m.group(1), username)
+                    elif pat_group.match(message_decoded): # sending group info
+                        m = pat_group.match(message_decoded)
+                        server.sendGroupInfo(m.group(1), username)
                     else:
-                        server.sendError(error, username)
+                        server.sendSystemMessage(error, username)
                 else:
                     server.sendMessageToAllUsers(notified_socket, message)
             elif server.isCurrentUserWaitingForGui(username): # client is waiting for GUI
