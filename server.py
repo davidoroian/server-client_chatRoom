@@ -2,6 +2,7 @@ import socket
 import select
 import re
 from models.server import Server
+from assets.patterns import *
 
 HEADERLENGTH = 10
 
@@ -9,24 +10,6 @@ port = 12234
 host = socket.getaddrinfo(socket.gethostname(), port, socket.AF_INET6)[0][4][0]  # getting ipv6 address
 
 server = Server(host, port)
-
-string_dm = r'@(\w+)\s(.+)'
-pat_dm = re.compile(string_dm)
-
-string_help = r'/help'
-pat_help = re.compile(string_help)
-
-string_users = r'/users'
-pat_users = re.compile(string_users)
-
-string_group_create = r'/create\sgroup\s(\w+)'
-pat_group_create = re.compile(string_group_create)
-
-string_group = r'/group\s(\w+)'
-pat_group = re.compile(string_group)
-
-string_groups = r'/groups'
-pat_groups = re.compile(string_groups)
 
 error = 'Incorrect syntax, use /help\n'
 

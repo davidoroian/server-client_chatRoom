@@ -306,6 +306,7 @@ class Server :
         print(self.groups.keys())
         if name in self.groups.keys():
             for member in self.groups[name].keys():
+                if member == user: member = 'You'
                 status=''
                 if self.users[member]['online']: status = 'online' 
                 else: status = 'offline' 
