@@ -399,13 +399,68 @@ class Server :
                             if self.users[member]['online']==1:
                                 self.sendSystemMessage(f'{user} has made you an admin of group {name}\n', member)
                             else:
-                                self.addSystemMessageToBuffer(f'{user} has added you to group {name}\n', member)
+                                self.addSystemMessageToBuffer(f'{user} has made you an admin of group {name}\n', member)
                         else:
                             self.sendSystemMessage('User is already an admin of this group\n', user)
                     else:
                         self.sendSystemMessage('You are not an admin of this group\n', user)                
                 else:
-                    self.sendSystemMessage('User you are trying to add does not exist\n', user)   
+                    self.sendSystemMessage('User does not exist\n', user)   
+            else: 
+                self.sendSystemMessage('You are not a member of this group\n', user)
+        else:
+            self.sendSystemMessage('Group does not exist\n', user)
+
+
+    def removeUserFromGroup (self, user, name, member):
+        if name in self.groups.keys():
+            if user in self.groups[name].keys():
+                if member in self.users.keys():
+                    if self.groups[name][user]['admin']:
+                        del self.groups[name][member]
+                        self.sendSystemMessage(f'{member} has been removed from group {name}\n', user)
+                        if self.users[member]['online']==1:
+                            self.sendSystemMessage(f'{user} has removed you from group {name}\n', member)
+                        else:
+                            self.addSystemMessageToBuffer(f'{user} has removed you from group {name}\n', member)
+                    else:
+                        self.sendSystemMessage('You are not an admin of this group\n', user)                
+                else:
+                    self.sendSystemMessage('User does not exist\n', user)   
+            else: 
+                self.sendSystemMessage('You are not a member of this group\n', user)
+        else:
+            self.sendSystemMessage('Group does not exist\n', user)
+
+    
+    def deleteGroup (self, user, name):
+        if name in self.groups.keys():
+            if user in self.groups[name].keys() and len(self.groups[name]) == 1:
+                del self.groups[name]
+                self.sendSystemMessage(f'group {name} has been deleted\n', user)
+            else: 
+                self.sendSystemMessage('You are not a member of this group or group is not empty\n', user)
+        else:
+            self.sendSystemMessage('Group does not exist\n', user)
+
+
+    def renameGroup (self, user, name, new_name):
+        if name in self.groups.keys():
+            if user in self.groups[name].keys():
+                if self.groups[name][user]['admin']:
+                    if new_name not in self.groups.keys():
+                        self.groups[new_name] = self.groups[name]
+                        del self.groups[name]
+                        self.sendSystemMessage(f'group {name} has been renamed to {new_name}\n', user)
+                        for member in self.groups[new_name].keys():
+                            if self.users[member]['online']==1:
+                                self.sendSystemMessage(f'group {name} has been renamed to {new_name} by {user}\n', member)
+                            else:
+                                self.addSystemMessageToBuffer(f'group {name} has been renamed to {new_name} by {user}\n', member)
+                    else:
+                        self.sendSystemMessage('Name is already taken\n', user)
+                else:
+                    self.sendSystemMessage('You are not an admin of this group\n', user)                
             else: 
                 self.sendSystemMessage('You are not a member of this group\n', user)
         else:

@@ -48,9 +48,18 @@ while True:
                     elif pat_group_add.match(message_decoded): # adding member to group
                         m = pat_group_add.match(message_decoded)
                         server.addToGroup(username, m.group(1), m.group(2))
-                    elif pat_make_admin.match(message_decoded): # adding member to group
+                    elif pat_make_admin.match(message_decoded): # making member admin of group
                         m = pat_make_admin.match(message_decoded)
                         server.makeAdmin(username, m.group(1), m.group(2))
+                    elif pat_remove.match(message_decoded): # removing member from group
+                        m = pat_remove.match(message_decoded)
+                        server.removeUserFromGroup(username, m.group(1), m.group(2))
+                    elif pat_delete_group.match(message_decoded): # deleting group
+                        m = pat_delete_group.match(message_decoded)
+                        server.deleteGroup(username, m.group(1))
+                    elif pat_rename_group.match(message_decoded): # renaming group
+                        m = pat_rename_group.match(message_decoded)
+                        server.renameGroup(username, m.group(1), m.group(2))
                     else:
                         server.sendSystemMessage(error, username)
                 else:

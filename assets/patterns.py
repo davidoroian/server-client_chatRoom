@@ -26,3 +26,12 @@ pat_sender = re.compile(string_sender)
 
 string_make_admin = r'/make\sadmin\s(\w+)\s(\w+)'
 pat_make_admin = re.compile(string_make_admin)
+
+string_remove = r'/remove\s(\w+)\s(\w+)'
+pat_remove = re.compile(string_remove)
+
+string_delete_group = r'/delete\s(\w+)'
+pat_delete_group = re.compile(string_delete_group)
+
+string_rename_group = r'/rename\s(\w+)\s(\w+)'
+pat_rename_group = re.compile(string_rename_group)
