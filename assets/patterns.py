@@ -23,3 +23,6 @@ pat_group_add = re.compile(string_group_add)
 
 string_sender = r'(\w+)\s>\s(\w+)'
 pat_sender = re.compile(string_sender)
+
+string_make_admin = r'/make\sadmin\s(\w+)\s(\w+)'
+pat_make_admin = re.compile(string_make_admin)

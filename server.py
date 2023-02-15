@@ -48,6 +48,9 @@ while True:
                     elif pat_group_add.match(message_decoded): # adding member to group
                         m = pat_group_add.match(message_decoded)
                         server.addToGroup(username, m.group(1), m.group(2))
+                    elif pat_make_admin.match(message_decoded): # adding member to group
+                        m = pat_make_admin.match(message_decoded)
+                        server.makeAdmin(username, m.group(1), m.group(2))
                     else:
                         server.sendSystemMessage(error, username)
                 else:

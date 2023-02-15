@@ -386,3 +386,27 @@ class Server :
                 self.sendSystemMessage('You are not a member of this group\n', user)
         else:
             self.sendSystemMessage('Group does not exist\n', user)
+
+
+    def makeAdmin (self, user, name, member):
+        if name in self.groups.keys():
+            if user in self.groups[name].keys():
+                if member in self.users.keys():
+                    if self.groups[name][user]['admin']:
+                        if not self.groups[name][member]['admin']:
+                            self.groups[name][member]['admin'] = True
+                            self.sendSystemMessage(f'{member} has been made an admin of group {name}\n', user)
+                            if self.users[member]['online']==1:
+                                self.sendSystemMessage(f'{user} has made you an admin of group {name}\n', member)
+                            else:
+                                self.addSystemMessageToBuffer(f'{user} has added you to group {name}\n', member)
+                        else:
+                            self.sendSystemMessage('User is already an admin of this group\n', user)
+                    else:
+                        self.sendSystemMessage('You are not an admin of this group\n', user)                
+                else:
+                    self.sendSystemMessage('User you are trying to add does not exist\n', user)   
+            else: 
+                self.sendSystemMessage('You are not a member of this group\n', user)
+        else:
+            self.sendSystemMessage('Group does not exist\n', user)
