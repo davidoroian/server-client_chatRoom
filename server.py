@@ -12,6 +12,8 @@ host = socket.getaddrinfo(socket.gethostname(), port, socket.AF_INET6)[0][4][0] 
 
 server = Server(host, port)
 
+print('Server started')
+
 while True:
     read_sockets, _, exception_sockets = select.select(server.sockets_list, [], server.sockets_list)
     for notified_socket in read_sockets:
