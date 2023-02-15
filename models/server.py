@@ -239,6 +239,17 @@ class Server :
         self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + message_header + message)
 
 
+    def addSystemMessageToBuffer(self, message, user):
+        username_encoded = 'System'.encode('utf-8')
+        username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        now = self.getTime() # for sending receive notification
+        message = message.encode('utf-8')
+        message_header = f"{len(message):<{self.HEADERLENGTH}}".encode('utf-8')
+
+        self.users[user]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':now['time_header'], 't':now['time'], 'msgheader': message_header, 'msg':message})
+
+
     def dm (self, sender, message, receiver):
     
         if receiver not in self.users.keys():
@@ -306,15 +317,39 @@ class Server :
         if name in self.groups.keys():
             if user in self.groups[name].keys():
                 for member in self.groups[name].keys():
-                    if member == user: member = 'You'
                     status=''
                     if self.users[member]['online']: status = 'online' 
                     else: status = 'offline' 
                     isAdmin = self.groups[name][member]['admin']
 
+                    if member == user: member = 'You'
                     groupInfo += f'\t{member} {status} isAdmin: {isAdmin}\n'
                 
                 self.sendSystemMessage(groupInfo , user)
+            else: 
+                self.sendSystemMessage('You are not a member of this group\n', user)
+        else:
+            self.sendSystemMessage('Group does not exist\n', user)
+    
+
+    def addToGroup (self, user, name, member):
+        if name in self.groups.keys():
+            if user in self.groups[name].keys():
+                if member in self.users.keys():
+                    if self.groups[name][user]['admin']:
+                        if member not in self.groups[name].keys():
+                            self.groups[name][member] = {'admin': False}
+                            self.sendSystemMessage(f'{member} has been added to group {name}\n', user)
+                            if self.users[member]['online']==1:
+                                self.sendSystemMessage(f'{user} has added you to group {name}\n', member)
+                            else:
+                                self.addSystemMessageToBuffer(f'{user} has added you to group {name}\n', member)
+                        else:
+                            self.sendSystemMessage('User is already a member of this group\n', user)
+                    else:
+                        self.sendSystemMessage('You are not an admin of this group\n', user)                
+                else:
+                    self.sendSystemMessage('User you are trying to add does not exist\n', user)   
             else: 
                 self.sendSystemMessage('You are not a member of this group\n', user)
         else:

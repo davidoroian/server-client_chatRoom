@@ -18,5 +18,5 @@ pat_group = re.compile(string_group)
 string_groups = r'/groups'
 pat_groups = re.compile(string_groups)
 
-string_group_add = r'/group\s(\w+)'
-pat_group_add = re.compile(string_group)
+string_group_add = r'/add\s(\w+)\s(\w+)'
+pat_group_add = re.compile(string_group_add)

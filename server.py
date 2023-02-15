@@ -44,6 +44,9 @@ while True:
                         server.sendGroupInfo(m.group(1), username)
                     elif pat_groups.match(message_decoded): # sending group info
                         server.sendGroupsInfo(username)
+                    elif pat_group_add.match(message_decoded): # adding member to group
+                        m = pat_group_add.match(message_decoded)
+                        server.addToGroup(username, m.group(1), m.group(2))
                     else:
                         server.sendSystemMessage(error, username)
                 else:
