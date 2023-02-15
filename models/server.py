@@ -303,18 +303,19 @@ class Server :
     
     def sendGroupInfo (self, name, user):
         groupInfo = f'The members of group {name}: \n'
-        print(self.groups.keys())
         if name in self.groups.keys():
-            for member in self.groups[name].keys():
-                if member == user: member = 'You'
-                status=''
-                if self.users[member]['online']: status = 'online' 
-                else: status = 'offline' 
-                isAdmin = self.groups[name][member]['admin']
+            if user in self.groups[name].keys():
+                for member in self.groups[name].keys():
+                    if member == user: member = 'You'
+                    status=''
+                    if self.users[member]['online']: status = 'online' 
+                    else: status = 'offline' 
+                    isAdmin = self.groups[name][member]['admin']
 
-                groupInfo += f'\t{member} {status} isAdmin: {isAdmin}\n'
-            
-            self.sendSystemMessage(groupInfo , user)
-
+                    groupInfo += f'\t{member} {status} isAdmin: {isAdmin}\n'
+                
+                self.sendSystemMessage(groupInfo , user)
+            else: 
+                self.sendSystemMessage('You are not a member of this group\n', user)
         else:
             self.sendSystemMessage('Group does not exist\n', user)
