@@ -20,3 +20,6 @@ pat_groups = re.compile(string_groups)
 
 string_group_add = r'/add\s(\w+)\s(\w+)'
 pat_group_add = re.compile(string_group_add)
+
+string_sender = r'(\w+)\s>\s(\w+)'
+pat_sender = re.compile(string_sender)

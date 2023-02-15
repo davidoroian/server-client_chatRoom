@@ -1,5 +1,6 @@
 import socket
 import time
+from assets.patterns import pat_sender
 
 class Server :
     
@@ -143,6 +144,9 @@ class Server :
                 receiver_header = f"{len(receiver):<{self.HEADERLENGTH}}".encode('utf-8')
 
                 sender = message['usr'].decode('utf-8')
+                if pat_sender.match(sender):
+                    m = pat_sender.match(sender)
+                    sender = m.group(2)
 
                 # receive motification for the sender
                 if sender != 'System': 
@@ -255,8 +259,8 @@ class Server :
 
     def dm (self, sender, message, receiver):
     
-        if receiver not in self.users.keys() or receiver not in self.groups.keys():
-            self.sendError("User/group does not exist", sender)
+        if receiver not in self.users.keys() and receiver not in self.groups.keys():
+            self.sendSystemMessage("User/group does not exist", sender)
             return 0
 
         message_encoded = message.encode('utf-8')
@@ -272,15 +276,34 @@ class Server :
         offline_message = f"is offline, the message was sent \n".encode('utf-8')
         offline_message_header = f"{len(offline_message):<{self.HEADERLENGTH}}".encode('utf-8')
 
-        receiver_encoded = receiver.encode('utf-8')
-        receiver_header = f"{len(receiver_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+        if receiver in self.users.keys(): # dm to one user
+            receiver_encoded = receiver.encode('utf-8')
+            receiver_header = f"{len(receiver_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
 
-        if self.users[receiver]['online'] == 1:
-            self.users[receiver]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + message_encoded_header + message_encoded)
-            self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + received_message_header + received_message)
-        else:
-            self.users[receiver]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':now['time_header'], 't':now['time'], 'msgheader': message_encoded_header, 'msg':message_encoded})
-            self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + offline_message_header + offline_message)
+            if self.users[receiver]['online'] == 1:
+                self.users[receiver]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + message_encoded_header + message_encoded)
+                self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + received_message_header + received_message)
+            else:
+                self.users[receiver]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':now['time_header'], 't':now['time'], 'msgheader': message_encoded_header, 'msg':message_encoded})
+                self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + offline_message_header + offline_message)
+        
+        if receiver in self.groups.keys(): # dm to all users in a group
+            for user in self.groups[receiver].keys():
+                if user != sender:
+                    receiver_encoded = receiver + f' > {user}'
+                    receiver_encoded = receiver_encoded.encode('utf-8')
+                    receiver_header = f"{len(receiver_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+
+                    username_encoded = receiver + f' > {sender}'
+                    username_encoded = username_encoded.encode('utf-8')
+                    username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
+                    if self.users[user]['online'] == 1:
+                        self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + message_encoded_header + message_encoded)
+                        self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + received_message_header + received_message)
+                    else:
+                        self.users[user]['buffer'].append({'usrheader':username_header, 'usr':username_encoded,'theader':now['time_header'], 't':now['time'], 'msgheader': message_encoded_header, 'msg':message_encoded})
+                        self.users[sender]['sock'].send(receiver_header + receiver_encoded + now['time_header'] + now['time'] + offline_message_header + offline_message)
+
 
 
     def sendUsers(self, user):
@@ -289,12 +312,13 @@ class Server :
 
         now = self.getTime() # for sending receive notification
         help = 'Available users:\n'
-        for user in self.users.keys():
-            if self.users[user]['online'] == 1:
-                help += f'\t{user} - online\n'
+        for other_user in self.users.keys():
+            if other_user == user : user == 'You'
+            if self.users[other_user]['online'] == 1:
+                help += f'\t{other_user} - online\n'
             else:
-                lastOn = self.users[user]['lastOn']
-                help += f'\t{user} - offline lastOn: {lastOn}\n'
+                lastOn = self.users[other_user]['lastOn']
+                help += f'\t{other_user} - offline lastOn: {lastOn}\n'
         help = help.encode('utf-8')
         help_header = f"{len(help):<{self.HEADERLENGTH}}".encode('utf-8')
         self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + help_header + help)
