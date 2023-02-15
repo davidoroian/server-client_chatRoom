@@ -31,7 +31,6 @@ while True:
                     else:
                         server.sendSystemMessage(error, username)
                 elif message_decoded.startswith('/'):
-                    print('in /')
                     if pat_help.match(message_decoded): # sending help syntax
                         server.sendSystemMessage(help, username)
                     elif pat_users.match(message_decoded): # sending available users

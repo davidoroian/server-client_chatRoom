@@ -75,9 +75,11 @@ class Server :
     def logout_client(self, client_socket):
         user = self.getUsernameOfSocket(client_socket)
 
+        lastOn = self.getTime()
         print(f"Closed connection from {user}")
         self.sockets_list.remove(client_socket) # removing socket from list for select
         self.users[user]['online'] = 0 # marking the user as offline
+        self.users[user]['lastOn'] = lastOn['time'].decode('utf-8')
 
         logout_message = 'logged out\n'
         logout_message = logout_message.encode('utf-8')
@@ -119,7 +121,7 @@ class Server :
     def register_client(self, client_socket, user, client_address):
         if user is not False:
             self.sockets_list.append(client_socket) # adding socket to the list for select
-            self.users[user] = {'online': 1, 'buffer': [], 'sock': client_socket} # creating user
+            self.users[user] = {'online': 1, 'buffer': [], 'sock': client_socket, 'lastOn': None} # creating user
 
             join_message = 'joined the chat\n'
             join_message = join_message.encode('utf-8')
@@ -143,7 +145,8 @@ class Server :
                 sender = message['usr'].decode('utf-8')
 
                 # receive motification for the sender
-                self.users[sender]['sock'].send(receiver_header + receiver + now['time_header'] + now['time'] + received_message_header + received_message)
+                if sender != 'System': 
+                    self.users[sender]['sock'].send(receiver_header + receiver + now['time_header'] + now['time'] + received_message_header + received_message)
                 # message sent to desired receiver
                 self.users[user]['sock'].send(message['usrheader'] + message['usr'] + message['theader'] + message['t'] + message['msgheader'] + message['msg'])
                 self.users[user]['buffer'].remove(message)
@@ -252,7 +255,7 @@ class Server :
 
     def dm (self, sender, message, receiver):
     
-        if receiver not in self.users.keys():
+        if receiver not in self.users.keys() or receiver not in self.groups.keys():
             self.sendError("User/group does not exist", sender)
             return 0
 
@@ -285,10 +288,15 @@ class Server :
         username_header = f"{len(username_encoded):<{self.HEADERLENGTH}}".encode('utf-8')
 
         now = self.getTime() # for sending receive notification
-        help = 'Available users:\n' + str(list(self.users.keys())) + '\n'
+        help = 'Available users:\n'
+        for user in self.users.keys():
+            if self.users[user]['online'] == 1:
+                help += f'\t{user} - online\n'
+            else:
+                lastOn = self.users[user]['lastOn']
+                help += f'\t{user} - offline lastOn: {lastOn}\n'
         help = help.encode('utf-8')
         help_header = f"{len(help):<{self.HEADERLENGTH}}".encode('utf-8')
-
         self.users[user]['sock'].send(username_header + username_encoded + now['time_header'] + now['time'] + help_header + help)
     
 
