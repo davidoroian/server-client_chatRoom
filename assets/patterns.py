@@ -35,3 +35,15 @@ pat_delete_group = re.compile(string_delete_group)
 
 string_rename_group = r'/rename\s(\w+)\s(\w+)'
 pat_rename_group = re.compile(string_rename_group)
+
+string_send_file = r'/sendfile\s([^\s]+)\s(\w+)'
+pat_send_file = re.compile(string_send_file)
+
+string_request_file_access = r'/sendfile\s([^\s]+)\s(\w+)\s(\w+)'
+pat_request_file_access = re.compile(string_request_file_access)
+
+string_accept = r'/accept'
+pat_accept = re.compile(string_accept)
+
+string_size = r'.*USER:\s([^|]+)\s\|\sFILE:\s([^|]+)\s\|\sSIZE:\s(\d+).*'
+pat_size = re.compile(string_size)

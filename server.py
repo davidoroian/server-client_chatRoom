@@ -60,6 +60,12 @@ while True:
                     elif pat_rename_group.match(message_decoded): # renaming group
                         m = pat_rename_group.match(message_decoded)
                         server.renameGroup(username, m.group(1), m.group(2))
+                    elif pat_request_file_access.match(message_decoded): # sending file
+                        m = pat_request_file_access.match(message_decoded)
+                        if m.group(2) != username:
+                            server.sendSystemMessage(f'USER: {username} | FILE: {m.group(1)} | SIZE: {m.group(3)}. DM him /accept or /decline\n', m.group(2))
+                        else:
+                            server.sendSystemMessage(f'You cannot send yourself a file', username)
                     else:
                         server.sendSystemMessage(error, username)
                 else:

@@ -28,4 +28,5 @@ This is a client-server chat application that accepts multiple connections and h
         /remove [groupname] [username] - remove user from specific group
         /delete [groupname] - delete group if empty
         /rename [groupname] [newgroupname] - rename group if new name is available
+        /sendfile [filepath] [username] - send file to specific user
 ```

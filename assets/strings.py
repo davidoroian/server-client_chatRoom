@@ -11,4 +11,5 @@ help = "These are the available commands:\n" \
         "\t/make admin [groupname] [username] - adds username to admin group for specific group\n" \
         "\t/remove [groupname] [username] - remove user from specific group\n" \
         "\t/delete [groupname] - delete group if empty\n" \
-        "\t/rename [groupname] [newgroupname] - rename group if new name is available\n"
+        "\t/rename [groupname] [newgroupname] - rename group if new name is available\n" \
+        "\t/sendfile [filepath] [username] - send file to desired user\n"
